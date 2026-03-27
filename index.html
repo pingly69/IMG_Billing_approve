@@ -70,12 +70,12 @@
         <!-- Floating Action Bar -->
         <div id="action-bar" class="fixed bottom-6 left-4 right-4 z-30 max-w-lg mx-auto bg-white/90 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-2xl flex gap-3">
             <button onclick="processApprove('Rejected')" 
-                class="flex-1 bg-white border-2 border-red-500 text-red-600 font-bold py-4 rounded-xl active:bg-red-50 transition active:scale-95">
-                ไม้อนุมัติ
+                class="flex-1 bg-white border-2 border-red-500 text-red-600 font-bold py-4 rounded-xl active:bg-red-50 transition active:scale-95 uppercase tracking-wide">
+                Reject
             </button>
             <button onclick="processApprove('Approved')" 
-                class="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 active:bg-indigo-700 transition active:scale-95">
-                อนุมัติที่เลือก
+                class="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 active:bg-indigo-700 transition active:scale-95 uppercase tracking-wide">
+                Approve
             </button>
         </div>
     </div>
@@ -145,7 +145,7 @@
         function showListScreen() {
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('list-screen').classList.remove('hidden');
-            document.getElementById('user-info').innerText = `ID: ${userProfile.userId}`;
+            document.getElementById('user-info').innerText = `LINE UID: ${userProfile.userId}`;
             loadData();
         }
 
@@ -164,7 +164,6 @@
             document.getElementById('action-bar').classList.remove('hidden');
 
             items.forEach(item => {
-                // แก้ไขการดึง File ID ให้แม่นยำขึ้น
                 let fileId = "";
                 if(item.pic.includes('id=')) {
                     fileId = item.pic.split('id=')[1].split('&')[0];
@@ -190,7 +189,7 @@
                         <div class="p-5 flex gap-5 items-start">
                             <div class="w-28 h-28 bg-gray-100 rounded-2xl flex-shrink-0 overflow-hidden shadow-inner cursor-pointer img-container relative group" onclick="window.open('${item.pic}', '_blank')">
                                 <img src="${thumbUrl}" class="w-full h-full object-cover" 
-                                     onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=ดูรูปผ่านLink'">
+                                     onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=VIEW+BILL'">
                                 <div class="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </div>
@@ -220,8 +219,8 @@
             const selected = Array.from(document.querySelectorAll('input[name="record"]:checked')).map(el => el.value);
             if (selected.length === 0) return alert("กรุณาเลือกรายการที่ต้องการดำเนินการ");
 
-            const actionLabel = status === 'Approved' ? 'ยืนยันการอนุมัติ' : 'ยืนยันการไม้อนุมัติ';
-            if (!confirm(`${actionLabel} จำนวน ${selected.length} รายการ?`)) return;
+            const actionLabel = status === 'Approved' ? 'Confirm Approve' : 'Confirm Reject';
+            if (!confirm(`${actionLabel} สำหรับ ${selected.length} รายการ?`)) return;
 
             const success = await callApi({ 
                 action: 'updateStatus', 
