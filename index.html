@@ -3,80 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <title>ระบบอนุมัติรายการ - LIFF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         .loader { border-top-color: #3498db; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .img-container img { transition: transform 0.3s; }
+        .img-container:active img { transform: scale(1.05); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 font-sans">
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
 
-    <div id="loading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <div id="loading" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-        <p class="text-gray-500 animate-pulse">กำลังโหลดข้อมูล...</p>
+        <p class="text-gray-500 font-medium animate-pulse">กำลังดึงข้อมูลล่าสุด...</p>
     </div>
 
     <!-- 0. Registration Screen -->
     <div id="reg-screen" class="hidden p-6">
-        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 mt-10 border border-gray-100">
-            <h2 class="text-2xl font-bold text-center mb-2 text-indigo-700">ลงทะเบียนผู้อนุมัติ</h2>
-            <p class="text-center text-gray-500 text-sm mb-6">กรุณาระบุรหัสผ่านเพื่อสวมสิทธิ์การอนุมัติ</p>
+        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 mt-10 border border-gray-100 text-center">
+            <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-indigo-700">ลงทะเบียนผู้อนุมัติ</h2>
+            <p class="text-gray-500 text-sm mb-6">ระบุรหัสผ่านส่วนตัวเพื่อเริ่มการอนุมัติ</p>
             <div class="space-y-4">
-                <input type="password" id="reg-pass" placeholder="รหัสผ่านผู้อนุมัติ" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                <input type="password" id="reg-pass" placeholder="กรอกรหัสผ่านของคุณ" 
+                    class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center text-lg">
                 <button onclick="register()" 
-                    class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition transform active:scale-95 shadow-md">
-                    ลงทะเบียน
+                    class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition transform active:scale-95 shadow-lg">
+                    ยืนยันตัวตน
                 </button>
             </div>
         </div>
     </div>
 
     <!-- 1. List Screen -->
-    <div id="list-screen" class="hidden pb-32">
-        <header class="bg-indigo-600 text-white p-4 sticky top-0 z-10 shadow-lg flex justify-between items-center">
+    <div id="list-screen" class="hidden pb-40">
+        <header class="bg-white border-b sticky top-0 z-20 px-4 py-4 flex justify-between items-center shadow-sm">
             <div>
-                <h1 class="font-bold text-lg">รายการรออนุมัติ</h1>
-                <p id="user-info" class="text-xs opacity-80 italic"></p>
+                <h1 class="font-black text-xl text-indigo-900">รายการรออนุมัติ</h1>
+                <p id="user-info" class="text-[10px] text-gray-400 font-medium uppercase tracking-wider"></p>
             </div>
-            <button onclick="location.reload()" class="bg-indigo-500 p-2 rounded-full hover:bg-indigo-400">
-                <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <button onclick="loadData()" class="bg-gray-100 p-2.5 rounded-full text-gray-600 active:bg-indigo-100 active:text-indigo-600 transition">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </button>
         </header>
 
-        <div id="data-container" class="p-4 space-y-4 max-w-2xl mx-auto">
+        <div id="data-container" class="p-4 space-y-5 max-w-2xl mx-auto">
             <!-- Cards will be injected here -->
         </div>
 
-        <div id="no-data" class="hidden text-center py-20">
-            <div class="text-6xl mb-4">🎉</div>
-            <h3 class="text-xl font-bold text-gray-500">ไม่มีรายการรออนุมัติแล้ว</h3>
+        <div id="no-data" class="hidden text-center py-24 px-6">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">จัดการเรียบร้อยแล้ว!</h3>
+            <p class="text-gray-500 mt-2">ไม่มีรายการที่ต้องอนุมัติในขณะนี้</p>
         </div>
 
         <!-- Floating Action Bar -->
-        <div id="action-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex gap-4 max-w-2xl mx-auto">
+        <div id="action-bar" class="fixed bottom-6 left-4 right-4 z-30 max-w-lg mx-auto bg-white/90 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-2xl flex gap-3">
             <button onclick="processApprove('Rejected')" 
-                class="flex-1 bg-white border-2 border-red-500 text-red-500 font-bold py-4 rounded-xl hover:bg-red-50 transition active:scale-95">
+                class="flex-1 bg-white border-2 border-red-500 text-red-600 font-bold py-4 rounded-xl active:bg-red-50 transition active:scale-95">
                 ไม้อนุมัติ
             </button>
             <button onclick="processApprove('Approved')" 
-                class="flex-1 bg-green-500 text-white font-bold py-4 rounded-xl hover:bg-green-600 transition shadow-lg active:scale-95">
-                อนุมัติ
+                class="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 active:bg-indigo-700 transition active:scale-95">
+                อนุมัติที่เลือก
             </button>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1TkL-05KU10tFUaGcpqfkh9TqNfHaZHIwMA75HkGNmUNncj8rw4JkrvIqS1ksRa16/exec"; // *** วาง Web App URL จาก GAS ที่นี่ ***
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1TkL-05KU10tFUaGcpqfkh9TqNfHaZHIwMA75HkGNmUNncj8rw4JkrvIqS1ksRa16/exec";
         let userProfile = {};
         let approveRequestName = "";
 
         async function init() {
             try {
-                await liff.init({ liffId: "2009018471-gUZQupT4" }); // *** วาง LIFF ID ของคุณที่นี่ ***
+                await liff.init({ liffId: "2009018471-gUZQupT4" });
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
@@ -119,24 +130,22 @@
         async function register() {
             const pass = document.getElementById('reg-pass').value;
             if (!pass) return alert("กรุณากรอกรหัสผ่าน");
-            
             const data = await callApi({ 
                 action: 'register', 
                 line_uid: userProfile.userId, 
                 displayName: userProfile.displayName, 
                 password: pass 
             });
-            
             if (data) {
                 approveRequestName = data.approve_request;
                 showListScreen();
             }
         }
 
-        async function showListScreen() {
+        function showListScreen() {
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('list-screen').classList.remove('hidden');
-            document.getElementById('user-info').innerText = `ผู้อนุมัติ: ${approveRequestName} (${userProfile.displayName})`;
+            document.getElementById('user-info').innerText = `ID: ${userProfile.userId}`;
             loadData();
         }
 
@@ -155,41 +164,64 @@
             document.getElementById('action-bar').classList.remove('hidden');
 
             items.forEach(item => {
-                const imgUrl = item.pic.replace('/view?usp=drivesdk', '').replace('file/d/', 'uc?id=').split('?')[0];
+                // แก้ไขการดึง File ID ให้แม่นยำขึ้น
+                let fileId = "";
+                if(item.pic.includes('id=')) {
+                    fileId = item.pic.split('id=')[1].split('&')[0];
+                } else if(item.pic.includes('/d/')) {
+                    fileId = item.pic.split('/d/')[1].split('/')[0];
+                }
+                
+                const thumbUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w400` : "";
+
                 const card = `
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 flex flex-col">
-                        <div class="p-4 bg-gray-50 border-b flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-indigo-900 leading-tight">${item.project || 'ไม่ระบุโครงการ'}</h3>
-                                <p class="text-xs text-gray-500 mt-1">ผู้ขอ: ${item.reqName}</p>
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-50 bg-indigo-50/30 flex justify-between items-center">
+                            <div class="flex-1 pr-4">
+                                <h3 class="font-bold text-gray-900 truncate">${item.project || 'ไม่มีชื่อโครงการ'}</h3>
+                                <p class="text-xs text-gray-500 font-medium">ผู้ขอ: ${item.reqName}</p>
                             </div>
-                            <span class="text-indigo-600 font-bold">฿${parseFloat(item.net).toLocaleString()}</span>
-                        </div>
-                        <div class="p-4 flex gap-4">
-                            <div class="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden cursor-pointer" onclick="window.open('${item.pic}', '_blank')">
-                                <img src="${imgUrl}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
-                            </div>
-                            <div class="flex-1 text-sm space-y-1">
-                                <p><span class="text-gray-400">วันที่:</span> ${item.docDate}</p>
-                                <p><span class="text-gray-400">รายละเอียด:</span> ${item.remark || '-'}</p>
+                            <div class="text-right">
+                                <p class="text-lg font-black text-indigo-600 leading-none">฿${parseFloat(item.net).toLocaleString()}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">${item.docDate}</p>
                             </div>
                         </div>
-                        <label class="p-4 bg-indigo-50/50 flex items-center justify-between cursor-pointer border-t">
-                            <span class="text-sm font-medium text-indigo-700">เลือกรายการนี้</span>
-                            <input type="checkbox" name="record" value="${item.recordId}" class="w-6 h-6 rounded text-indigo-600">
+                        
+                        <div class="p-5 flex gap-5 items-start">
+                            <div class="w-28 h-28 bg-gray-100 rounded-2xl flex-shrink-0 overflow-hidden shadow-inner cursor-pointer img-container relative group" onclick="window.open('${item.pic}', '_blank')">
+                                <img src="${thumbUrl}" class="w-full h-full object-cover" 
+                                     onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=ดูรูปผ่านLink'">
+                                <div class="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <span class="text-[10px] font-bold text-gray-300 uppercase block mb-1">REMARK / หมายเหตุ</span>
+                                <p class="text-sm text-gray-600 line-clamp-3">${item.remark || '-'}</p>
+                            </div>
+                        </div>
+
+                        <label class="px-5 py-4 bg-gray-50 flex items-center justify-between cursor-pointer border-t border-gray-100 group">
+                            <span class="text-sm font-bold text-gray-400 group-has-[:checked]:text-indigo-600 transition">เลือกรายการนี้</span>
+                            <div class="relative">
+                                <input type="checkbox" name="record" value="${item.recordId}" class="peer sr-only">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-600 transition"></div>
+                                <svg class="w-4 h-4 text-white absolute top-1 left-1 opacity-0 peer-checked:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
                         </label>
                     </div>
                 `;
                 container.innerHTML += card;
             });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function processApprove(status) {
             const selected = Array.from(document.querySelectorAll('input[name="record"]:checked')).map(el => el.value);
-            if (selected.length === 0) return alert("กรุณาเลือกอย่างน้อย 1 รายการ");
+            if (selected.length === 0) return alert("กรุณาเลือกรายการที่ต้องการดำเนินการ");
 
-            const confirmText = status === 'Approved' ? 'ยืนยันการอนุมัติ?' : 'ยืนยันการไม้อนุมัติ?';
-            if (!confirm(confirmText)) return;
+            const actionLabel = status === 'Approved' ? 'ยืนยันการอนุมัติ' : 'ยืนยันการไม้อนุมัติ';
+            if (!confirm(`${actionLabel} จำนวน ${selected.length} รายการ?`)) return;
 
             const success = await callApi({ 
                 action: 'updateStatus', 
